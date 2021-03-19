@@ -67,25 +67,3 @@ func GetStatus(c *clif.Command, out clif.Output) {
 		}
 	}
 }
-
-func printRunners(runners *github.Runners, title string) {
-
-	if runners == nil {
-		return
-	}
-	o.Printf("<important>%s<reset>\n", title)
-	statusicon := ""
-	for _, runner := range runners.Runners {
-
-		if runner.GetStatus() == "offline" {
-			statusicon = "offline"
-		} else {
-			if runner.GetBusy() {
-				statusicon = "busy"
-			} else {
-				statusicon = "online"
-			}
-		}
-		o.Printf("   <%s> %s\n", statusicon, runner.GetName())
-	}
-}
