@@ -30,14 +30,41 @@ func GetStatus(c *clif.Command, out clif.Output) {
 
 	if repo != nil {
 		repodetails := getRepodetails(repo)
-		repoRunners, _, _ := client.Actions.ListRunners(ctx, repodetails.owner, repodetails.name, nil)
-		title := "(" + repodetails.owner + ") " + repodetails.name
-		printRunners(repoRunners, title)
-	}
+		repoWorkflows, _, _ := client.Actions.ListWorkflows(ctx, repodetails.owner, repodetails.name, nil)
 
-	//client.Actions.ListRunners(ctx , "mmds")
-	organisationRunners, _, _ := client.Actions.ListOrganizationRunners(ctx, "mmz-srf", nil)
-	printRunners(organisationRunners, "mmz-srf")
+		for _, workflow := range repoWorkflows.Workflows {
+
+			out.Printf(" <%s> %s\n", workflow.GetState(), workflow.GetName())
+
+			workflowRuns, _, _ := client.Actions.ListWorkflowRunsByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), nil)
+
+			limit := 5
+			for count, run := range workflowRuns.WorkflowRuns {
+				if count >= limit {
+					break
+				}
+
+				runDetails, _, _ := client.Actions.GetWorkflowRunByID(ctx, repodetails.owner, repodetails.name, run.GetID())
+				// possible status : queued, in_progress, completed
+				// possible Conclusions: success, failure
+				var icon string
+				switch status := runDetails.GetStatus(); status {
+				case "queued":
+					icon = "queued"
+				case "in_progress":
+					icon = "in_progress"
+				case "completed":
+					if runDetails.GetConclusion() == "success" {
+						icon = "ok"
+					} else {
+						icon = "failure"
+					}
+				}
+				out.Printf("   #%d <%s> event:%s, created:%s\n", runDetails.GetRunNumber(), icon, runDetails.GetEvent(), runDetails.GetCreatedAt())
+			}
+			out.Printf("<reset>\n")
+		}
+	}
 }
 
 func printRunners(runners *github.Runners, title string) {

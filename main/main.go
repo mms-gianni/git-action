@@ -23,19 +23,22 @@ func main() {
 	cli := clif.New("git-project", "DEV-VERSION", "Manage your github projects with git cli")
 
 	var OwnStyles = map[string]string{
-		"error":     "\033[31;1m",
-		"warn":      "\033[33m",
-		"info":      "\033[0;97m",
-		"success":   "\033[32m",
-		"debug":     "\033[30;1m",
-		"headline":  "\033[4;1m",
-		"subline":   "\033[4m",
-		"important": "\033[47;30;1m",
-		"query":     "\033[36m",
-		"reset":     "\033[0m",
-		"online":    "\U00002705",
-		"offline":   "\U0001F480",
-		"busy":      "\U0001F525",
+		"error":             "\033[31;1m",
+		"warn":              "\033[33m",
+		"info":              "\033[0;97m",
+		"success":           "\033[32m",
+		"debug":             "\033[30;1m",
+		"headline":          "\033[4;1m",
+		"subline":           "\033[4m",
+		"important":         "\033[47;30;1m",
+		"query":             "\033[36m",
+		"reset":             "\033[0m",
+		"ok":                "\U00002705",
+		"failure":           "\U0000274C",
+		"in_progress":       "\U0001F525",
+		"queued":            "\U0001F553",
+		"disabled_manually": "\033[30;1m",
+		"active":            "",
 	}
 
 	cli.SetOutput(clif.NewColorOutput(os.Stdout).SetFormatter(clif.NewDefaultFormatter(OwnStyles)))
