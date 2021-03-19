@@ -45,6 +45,7 @@ func GetStatus(c *clif.Command, out clif.Output) {
 				}
 
 				runDetails, _, _ := client.Actions.GetWorkflowRunByID(ctx, repodetails.owner, repodetails.name, run.GetID())
+				runUsage, _, _ := client.Actions.GetWorkflowRunUsageByID(ctx, repodetails.owner, repodetails.name, run.GetID())
 				// possible status : queued, in_progress, completed
 				// possible Conclusions: success, failure
 				var icon string
@@ -60,7 +61,7 @@ func GetStatus(c *clif.Command, out clif.Output) {
 						icon = "failure"
 					}
 				}
-				out.Printf("   #%d <%s> event:%s, created:%s\n", runDetails.GetRunNumber(), icon, runDetails.GetEvent(), runDetails.GetCreatedAt())
+				out.Printf("   #%d <%s> %s, created:%s, duration:%dsec \n", runDetails.GetRunNumber(), icon, runDetails.GetEvent(), runDetails.GetCreatedAt(), runUsage.GetRunDurationMS()/1000)
 			}
 			out.Printf("<reset>\n")
 		}
