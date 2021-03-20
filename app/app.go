@@ -61,7 +61,8 @@ func GetStatus(c *clif.Command, out clif.Output) {
 						icon = "failure"
 					}
 				}
-				out.Printf("   #%d <%s> %s, created:%s, duration:%dsec \n", runDetails.GetRunNumber(), icon, runDetails.GetEvent(), runDetails.GetCreatedAt(), runUsage.GetRunDurationMS()/1000)
+				out.Printf("    #%d <%s> %s, created:%s, duration:%dsec %s\n", runDetails.GetRunNumber(), icon, runDetails.GetEvent(), runDetails.GetCreatedAt(), runUsage.GetRunDurationMS()/1000, runDetails.GetHeadCommit().GetMessage())
+
 			}
 			out.Printf("<reset>\n")
 		}
