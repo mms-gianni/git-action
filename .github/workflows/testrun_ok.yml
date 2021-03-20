@@ -21,4 +21,11 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Just a test run
-        run: echo Just a test run
+        run: |
+          for i in {1..10}
+          do
+            echo sleep $i
+            sleep 5s
+          done
+          
+          echo Just a test run
