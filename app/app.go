@@ -78,11 +78,13 @@ func GetLog(c *clif.Command, out clif.Output) {
 
 							url := "https://api.github.com/repos/mms-gianni/git-action/actions/jobs/" + strconv.FormatInt(job.GetID(), 10) + "/logs"
 							req, _ := client.NewRequest("GET", url, nil)
-							resp, _ := client.Do(ctx, req, nil)
+							var data string
+							resp, _ := client.Do(ctx, req, data)
 
 							defer resp.Body.Close()
 							body, _ := ioutil.ReadAll(resp.Body)
 							out.Printf(string(body))
+							out.Printf("running statuscode %d\n", resp.StatusCode)
 
 							out.Printf("\n")
 
@@ -92,15 +94,12 @@ func GetLog(c *clif.Command, out clif.Output) {
 						//out.Printf("not running curl -i -u 'mms-gianni:%s' %s %s\n", os.Getenv("GITHUB_TOKEN"), run.GetLogsURL(), run.GetID())
 						for _, job := range jobs.Jobs {
 							/*
-									out.Printf(job.GetCheckRunURL())
-									out.Printf(job.GetHTMLURL())
 									url := "https://github.com/mms-gianni/git-action/commit/" + runDetails.GetHeadCommit().GetID() + "/checks/" + strconv.FormatInt(job.GetID(), 10) + "/live_logs"
 									//url := "https://api.github.com/repos/mms-gianni/git-action/commit/" + runDetails.GetHeadCommit().GetID() + "/checks/" + strconv.FormatInt(job.GetID(), 10) + "/live_logs"
 
 									out.Printf("%s\n", url)
 
 								url := job.GetCheckRunURL()
-								url = "https://api.github.com/repos/mms-gianni/commits/" + runDetails.GetHeadCommit().GetID() + "/checks/" + strconv.FormatInt(job.GetID(), 10) + "/live_logs"
 								url = "https://api.github.com/repos/mms-gianni/git-action/commit/" + runDetails.GetHeadCommit().GetID() + "/checks/" + strconv.FormatInt(job.GetID(), 10) + "/live_logs"
 								url = "https://api.github.com/repos/mms-gianni/git-action/commits/" + runDetails.GetHeadCommit().GetID() + "/check-runs"
 								//url = "https://github.com/mms-gianni/git-action/commit/" + runDetails.GetHeadCommit().GetID() + "/checks/" + strconv.FormatInt(job.GetID(), 10) + "/live_logs"
@@ -119,19 +118,24 @@ func GetLog(c *clif.Command, out clif.Output) {
 								out.Printf("\n")
 							*/
 
-							//logurl, _, _ := client.Actions.GetWorkflowJobLogs(ctx, repodetails.owner, repodetails.name, job.GetID(), true)
+							logurl, _, _ := client.Actions.GetWorkflowJobLogs(ctx, repodetails.owner, repodetails.name, job.GetID(), true)
 							//fmt.Println(logurl.String())
+							url := logurl.String()
+
 							fmt.Println(job.GetID())
 
-							url := "https://api.github.com/repos/mms-gianni/git-action/actions/jobs/" + strconv.FormatInt(job.GetID(), 10) + "/logs"
+							url = "repos/mms-gianni/git-action/actions/jobs/" + strconv.FormatInt(job.GetID(), 10) + "/logs"
 							req, _ := client.NewRequest("GET", url, nil)
-							resp, _ := client.Do(ctx, req, nil)
+							var data string
+							resp, _ := client.Do(ctx, req, data)
 
 							defer resp.Body.Close()
-							body, _ := ioutil.ReadAll(resp.Body)
-							out.Printf(string(body))
+							//body, _ := ioutil.ReadAll(resp.Body)
+							//out.Printf(string(body))
 
-							out.Printf("\n")
+							out.Printf("statuscode %d\n", resp.StatusCode)
+
+							//out.Printf("\n")
 						}
 					}
 				}
