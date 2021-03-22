@@ -38,7 +38,7 @@ func GetStatus(c *clif.Command, out clif.Output) {
 
 			workflowRuns, _, _ := client.Actions.ListWorkflowRunsByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), nil)
 
-			limit := 5
+			limit := c.Option("limit").Int()
 			for count, run := range workflowRuns.WorkflowRuns {
 				if count >= limit {
 					break

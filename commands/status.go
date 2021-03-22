@@ -10,7 +10,8 @@ func cmdStatus() *clif.Command {
 		githubcommands.GetStatus(c, out)
 	}
 
-	return clif.NewCommand("status", "List actions", cb)
+	return clif.NewCommand("status", "List actions", cb).
+		NewOption("limit", "l", "limit the display of Workflow runs", "5", false, false)
 }
 
 func init() {
