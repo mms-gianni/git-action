@@ -2,6 +2,10 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
 
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
@@ -67,4 +71,49 @@ func GetStatus(c *clif.Command, out clif.Output) {
 			out.Printf("<reset>\n")
 		}
 	}
+}
+
+func selectAction(client *github.Client, in clif.Input, preselectedWorkflow string, repodetails *repoDetails) *github.Workflow {
+
+	choices := make(map[string]string)
+
+	repoWorkflows, _, _ := client.Actions.ListWorkflows(ctx, repodetails.owner, repodetails.name, nil)
+	for key, workflow := range repoWorkflows.Workflows {
+
+		yamlFile, err := ioutil.ReadFile(workflow.GetPath())
+		if err != nil {
+			panic(err)
+		}
+		s := string(yamlFile)
+
+		if strings.Contains(s, "workflow_dispatch") {
+			choices[strconv.Itoa(key+1)] = workflow.GetName()
+			if workflow.GetName() == preselectedWorkflow {
+				return workflow
+			}
+		}
+	}
+
+	selectedNr, _ := strconv.Atoi(in.Choose("Where do you want to add a task?", choices))
+	return repoWorkflows.Workflows[selectedNr-1]
+}
+
+func RunAction(c *clif.Command, out clif.Output, in clif.Input) {
+	client := login(c)
+	o = out
+
+	_, repo := GetGitdir()
+
+	if repo != nil {
+		repodetails := getRepodetails(repo)
+		workflow := selectAction(client, in, "", repodetails)
+
+		fmt.Println(workflow.GetName())
+
+		client.Actions.CreateWorkflowDispatchEventByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), github.CreateWorkflowDispatchEventRequest{
+			Ref: "master",
+		})
+	}
+	return
+
 }
