@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -108,11 +107,14 @@ func RunAction(c *clif.Command, out clif.Output, in clif.Input) {
 		repodetails := getRepodetails(repo)
 		workflow := selectAction(client, in, c.Argument("action").String(), repodetails)
 
-		fmt.Println(workflow.GetName())
-
-		client.Actions.CreateWorkflowDispatchEventByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), github.CreateWorkflowDispatchEventRequest{
+		_, err := client.Actions.CreateWorkflowDispatchEventByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), github.CreateWorkflowDispatchEventRequest{
 			Ref: "master",
 		})
+
+		if err == nil {
+			out.Printf("\n  <ok> started Action \"%s\"\n\n", workflow.GetName())
+		}
+
 	}
 	return
 
