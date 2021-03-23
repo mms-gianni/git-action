@@ -12,5 +12,6 @@ require (
 	github.com/olekukonko/ts v0.0.0-20171002115256-78ecb04241c0 // indirect
 	github.com/ukautz/reflekt v0.0.0-20180611090553-6ce38d64d188 // indirect
 	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
+	golang.org/x/tools v0.0.0-20200825202427-b303f430e36d
 	gopkg.in/ukautz/clif.v1 v1.0.0-20190218144324-df36acc24204
 )

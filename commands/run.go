@@ -7,11 +7,18 @@ import (
 
 func cmdRun() *clif.Command {
 	cb := func(c *clif.Command, out clif.Output, in clif.Input) {
-		githubcommands.RunAction(c, out, in)
+		workflow := githubcommands.RunAction(c, out, in)
+
+		if c.Option("follow").Bool() {
+			rundetails := githubcommands.FollowAction(c, out, workflow)
+
+			githubcommands.ShowLog(c, out, rundetails)
+		}
 	}
 
-	return clif.NewCommand("run", "Run actions", cb).
-		NewArgument("action", "Name of the action to run", "", false, true)
+	return clif.NewCommand("run", "Run a workflow", cb).
+		NewArgument("action", "Name of the workflow to run", "", false, true).
+		NewFlag("follow", "f", "Follow the triggered Workflow", false)
 }
 
 func init() {

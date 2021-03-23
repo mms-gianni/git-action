@@ -2,9 +2,11 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
@@ -97,15 +99,15 @@ func selectAction(client *github.Client, in clif.Input, preselectedWorkflow stri
 	return repoWorkflows.Workflows[selectedNr-1]
 }
 
-func RunAction(c *clif.Command, out clif.Output, in clif.Input) {
+func RunAction(c *clif.Command, out clif.Output, in clif.Input) github.Workflow {
 	client := login(c)
 	o = out
+	var workflow *github.Workflow
 
 	_, repo := GetGitdir()
-
 	if repo != nil {
 		repodetails := getRepodetails(repo)
-		workflow := selectAction(client, in, c.Argument("action").String(), repodetails)
+		workflow = selectAction(client, in, c.Argument("action").String(), repodetails)
 
 		_, err := client.Actions.CreateWorkflowDispatchEventByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), github.CreateWorkflowDispatchEventRequest{
 			Ref: "master",
@@ -115,7 +117,66 @@ func RunAction(c *clif.Command, out clif.Output, in clif.Input) {
 			out.Printf("\n  <ok> started Action \"%s\"\n\n", workflow.GetName())
 		}
 
+		return *workflow
 	}
-	return
 
+	return *workflow
+
+}
+
+func FollowAction(c *clif.Command, out clif.Output, workflow github.Workflow) *github.WorkflowRun {
+
+	client := login(c)
+	time.Sleep(2 * time.Second)
+
+	_, repo := GetGitdir()
+	repodetails := getRepodetails(repo)
+
+	workflowRuns, _, _ := client.Actions.ListWorkflowRunsByID(ctx, repodetails.owner, repodetails.name, workflow.GetID(), nil)
+
+	for {
+		for count, run := range workflowRuns.WorkflowRuns {
+			if count >= 1 {
+				break
+			}
+
+			runDetails, _, _ := client.Actions.GetWorkflowRunByID(ctx, repodetails.owner, repodetails.name, run.GetID())
+
+			if runDetails.GetStatus() != "completed" {
+				out.Printf("\r  <%s> %s \"%s\"", runDetails.GetStatus(), runDetails.GetStatus(), workflow.GetName())
+			} else {
+				var icon string
+				if runDetails.GetConclusion() == "success" {
+					icon = "ok"
+				} else {
+					icon = "failure"
+				}
+				out.Printf("\r  <%s> %s \"%s\"                           \n\n", icon, runDetails.GetConclusion(), workflow.GetName())
+				return runDetails
+			}
+
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func ShowLog(c *clif.Command, out clif.Output, run *github.WorkflowRun) {
+
+	client := login(c)
+	_, repo := GetGitdir()
+	repodetails := getRepodetails(repo)
+	jobs, _, _ := client.Actions.ListWorkflowJobs(ctx, repodetails.owner, repodetails.name, run.GetID(), nil)
+
+	for _, job := range jobs.Jobs {
+		logurl, _, _ := client.Actions.GetWorkflowJobLogs(ctx, repodetails.owner, repodetails.name, job.GetID(), true)
+
+		req, _ := client.NewRequest("GET", logurl.String(), nil)
+		var data string
+		resp, _ := client.Do(ctx, req, data)
+
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Print(string(body))
+
+	}
 }
