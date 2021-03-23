@@ -106,7 +106,7 @@ func RunAction(c *clif.Command, out clif.Output, in clif.Input) {
 
 	if repo != nil {
 		repodetails := getRepodetails(repo)
-		workflow := selectAction(client, in, "", repodetails)
+		workflow := selectAction(client, in, c.Argument("action").String(), repodetails)
 
 		fmt.Println(workflow.GetName())
 
