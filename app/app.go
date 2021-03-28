@@ -180,3 +180,43 @@ func ShowLog(c *clif.Command, out clif.Output, run *github.WorkflowRun) {
 
 	}
 }
+
+func Enable(c *clif.Command, out clif.Output, in clif.Input, status bool) {
+	client := login(c)
+	o = out
+
+	_, repo := GetGitdir()
+	if repo != nil {
+		repodetails := getRepodetails(repo)
+		if status {
+			workflow := selectActionBystatus(client, in, c.Argument("action").String(), repodetails, "disabled_manually")
+			client.Actions.EnableWorkflowByID(ctx, repodetails.owner, repodetails.name, workflow.GetID())
+		} else {
+			workflow := selectActionBystatus(client, in, c.Argument("action").String(), repodetails, "active")
+			client.Actions.DisableWorkflowByID(ctx, repodetails.owner, repodetails.name, workflow.GetID())
+		}
+	}
+}
+
+func selectActionBystatus(client *github.Client, in clif.Input, preselectedWorkflow string, repodetails *repoDetails, state string) *github.Workflow {
+
+	choices := make(map[string]string)
+
+	repoWorkflows, _, _ := client.Actions.ListWorkflows(ctx, repodetails.owner, repodetails.name, nil)
+	for key, workflow := range repoWorkflows.Workflows {
+
+		if workflow.GetState() == "active" && state == "active" {
+			choices[strconv.Itoa(key+1)] = workflow.GetName()
+		}
+		if workflow.GetState() == "disabled_manually" && state == "disabled_manually" {
+			choices[strconv.Itoa(key+1)] = workflow.GetName()
+		}
+		if workflow.GetName() == preselectedWorkflow {
+			return workflow
+		}
+
+	}
+
+	selectedNr, _ := strconv.Atoi(in.Choose("Where do you want to add a task?", choices))
+	return repoWorkflows.Workflows[selectedNr-1]
+}
