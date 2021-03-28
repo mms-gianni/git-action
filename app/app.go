@@ -83,7 +83,8 @@ func selectAction(client *github.Client, in clif.Input, preselectedWorkflow stri
 
 		yamlFile, err := ioutil.ReadFile(workflow.GetPath())
 		if err != nil {
-			panic(err)
+			//panic(err)
+			fmt.Printf("WARNING: File %s not found\n\n", workflow.GetPath())
 		}
 		s := string(yamlFile)
 
